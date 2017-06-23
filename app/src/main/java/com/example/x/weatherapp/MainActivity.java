@@ -95,6 +95,7 @@ public class MainActivity extends ActionBarActivity {
                     listWeather.add(weather);
             }
             catch (Exception e){
+
             }
             return weather;
         }
@@ -102,8 +103,7 @@ public class MainActivity extends ActionBarActivity {
         @RequiresApi(api = Build.VERSION_CODES.N)
         @Override
         protected void onPostExecute(Weather weather) {
-            super.onPostExecute(weather);
-
+            adapter.notifyDataSetChanged();
         }
     }
 
@@ -129,23 +129,8 @@ public class MainActivity extends ActionBarActivity {
                     Toast.makeText(context, "You did not press Submit button!", Toast.LENGTH_LONG).show();
                 }
             });
-            showAlert();
             builder.show();
         }
-    }
-
-    public void showAlert(){
-        AlertDialog.Builder myAlert = new AlertDialog.Builder(this);
-        myAlert.setMessage("Looking For The City..")
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
-                .setTitle("City")
-                .create();
-        myAlert.show();
     }
 
     @Override
