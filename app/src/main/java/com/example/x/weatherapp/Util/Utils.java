@@ -1,4 +1,4 @@
-package Util;
+package com.example.x.weatherapp.Util;
 
 import org.json.JSONException;
 import org.json.JSONObject;

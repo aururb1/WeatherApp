@@ -1,48 +1,33 @@
 package com.example.x.weatherapp;
 
-import android.accessibilityservice.GestureDescription;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.icu.text.DateFormat;
-import android.icu.text.DecimalFormat;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
-import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.squareup.picasso.Picasso;
-
-import org.w3c.dom.Text;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
 
-import Util.Utils;
-import data.CityPreference;
-import data.JSONWeatherParser;
-import data.WeatherHttpClient;
-import model.Weather;
+import com.example.x.weatherapp.data.JSONWeatherParser;
+import com.example.x.weatherapp.data.WeatherHttpClient;
+import com.example.x.weatherapp.model.Weather;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -56,11 +41,42 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        if(!isConnected(MainActivity.this)) buildDialog(MainActivity.this).show();
         recyclerView = (RecyclerView) findViewById(R.id.recycleView);
         adapter = new MyCustomAdapter(this, listWeather);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+    }
+
+    public boolean isConnected(Context context){
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+
+        if(networkInfo != null && networkInfo.isConnectedOrConnecting()) {
+            android.net.NetworkInfo wifi = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+            android.net.NetworkInfo mobile = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+
+            if ((mobile != null && mobile.isConnectedOrConnecting()) || (wifi != null && wifi.isConnectedOrConnecting()))
+                return true;
+            else
+                return false;
+        } else
+            return false;
+    }
+
+    public AlertDialog.Builder buildDialog(Context context){
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setIcon(R.drawable.error);
+        builder.setTitle("No Internet Connection");
+        builder.setMessage("You need to have internet access. Press Ok to Exit");
+
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                finish();
+            }
+        });
+        return builder;
     }
 
     public void renderWeatherData(String city){
@@ -77,12 +93,9 @@ public class MainActivity extends ActionBarActivity {
                 weather = JSONWeatherParser.getWeather(data);
                 if(weather!=null)
                     listWeather.add(weather);
-
             }
             catch (Exception e){
-
             }
-
             return weather;
         }
 
@@ -95,23 +108,30 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void showInpuDialog(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setTitle("Change City");
-        final EditText cityInput = new EditText(MainActivity.this);
-        cityInput.setInputType(InputType.TYPE_CLASS_TEXT);
-        cityInput.setHint("Vilnius,LT");
-        builder.setView(cityInput);
-        builder.setPositiveButton("Submit", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                CityPreference cityPreference = new CityPreference(MainActivity.this);
-                cityPreference.setCity(cityInput.getText().toString());
-                String newCity = cityPreference.getCity();
-                renderWeatherData(newCity);
-            }
-        });
-        showAlert();
-        builder.show();
+        if(!isConnected(MainActivity.this)) buildDialog(MainActivity.this).show();
+        else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setTitle("Choose City");
+            final EditText cityInput = new EditText(MainActivity.this);
+            cityInput.setInputType(InputType.TYPE_CLASS_TEXT);
+            cityInput.setHint("Vilnius,LT");
+            builder.setView(cityInput);
+            builder.setPositiveButton("Submit", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    renderWeatherData(cityInput.getText().toString());
+                }
+            });
+            builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialog) {
+                    Context context = getApplicationContext();
+                    Toast.makeText(context, "You did not press Submit button!", Toast.LENGTH_LONG).show();
+                }
+            });
+            showAlert();
+            builder.show();
+        }
     }
 
     public void showAlert(){

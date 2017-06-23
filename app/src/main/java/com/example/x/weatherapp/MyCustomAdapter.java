@@ -1,35 +1,25 @@
 package com.example.x.weatherapp;
 
-import android.content.DialogInterface;
 import android.icu.text.DateFormat;
 import android.icu.text.DecimalFormat;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import Util.Utils;
-import model.Weather;
+import com.example.x.weatherapp.Util.Utils;
+import com.example.x.weatherapp.model.Weather;
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Date;
-
-/**
- * Created by X on 2017-06-17.
- */
 
 public class MyCustomAdapter extends RecyclerView.Adapter<MyCustomAdapter.MyViewHolder> {
     private Context context;
@@ -60,35 +50,33 @@ public class MyCustomAdapter extends RecyclerView.Adapter<MyCustomAdapter.MyView
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onBindViewHolder(MyViewHolder myViewHolder, final int position) {
-        try {
-            String iconFormat = data.get(position).currentCondition.getIcon();
-            String imageUrl = Utils.ICON_URL + iconFormat;
+        String iconFormat = data.get(position).getCurrentCondition().getIcon();
+        String imageUrl = Utils.ICON_URL + iconFormat;
 
-            loadImageFromUrl(imageUrl, myViewHolder.iconView);
+        loadImageFromUrl(imageUrl, myViewHolder.iconView);
 
-            DateFormat df = DateFormat.getTimeInstance();
+        DateFormat df = DateFormat.getTimeInstance();
 
-            String sunriseDate = df.format(new Date(data.get(position).place.getSunrise()));
-            String sunsetDate = df.format((new Date(data.get(position).place.getSunset())));
-            String updateDate = df.format(new Date((data.get(position).place.getLastupdate())));
+        String sunriseDate = df.format(new Date(data.get(position).getPlace().getSunrise()));
+        String sunsetDate = df.format((new Date(data.get(position).getPlace().getSunset())));
+        String updateDate = df.format(new Date((data.get(position).getPlace().getLastupdate())));
 
-            DecimalFormat decimalFormat = new DecimalFormat("#.#");
-            String tempFormat = decimalFormat.format(data.get(position).currentCondition.getTemperature());
+        DecimalFormat decimalFormat = new DecimalFormat("#.#");
+        String tempFormat = decimalFormat.format(data.get(position).getTemperature().getTemperature());
+        String minTempFormat = decimalFormat.format(data.get(position).getTemperature().getMinTemp());
+        String maxTempFormat = decimalFormat.format(data.get(position).getTemperature().getMaxTemp());
 
-            myViewHolder.cityName.setText(data.get(position).place.getCity() + "," + data.get(position).place.getCountry());
-            myViewHolder.temp.setText("" + tempFormat + "C");
-            myViewHolder.humidity.setText("Humidity: " + data.get(position).currentCondition.getHumidity() + "%");
-            myViewHolder.pressure.setText("Pressure: " + data.get(position).currentCondition.getPressure() + "hPa");
-            myViewHolder.wind.setText("Wind: " + data.get(position).wind.getSpeed() + "mps");
-            myViewHolder.sunrise.setText("Sunrise: " + sunriseDate + " AM");
-            myViewHolder.sunset.setText("Sunset: " + sunsetDate + " PM");
-            myViewHolder.updated.setText("Last Updated :" + updateDate + " PM");
-            myViewHolder.description.setText("Condition: " + data.get(position).currentCondition.getCondition() + "(" +
-                    data.get(position).currentCondition.getDescription() + ")");
-        }
-        catch(Exception e){
-
-        }
+        myViewHolder.cityName.setText(data.get(position).getPlace().getCity() + "," + data.get(position).getPlace().getCountry());
+        myViewHolder.temp.setText(tempFormat + "°C");
+        myViewHolder.minMaxTemp.setText(maxTempFormat + "°C/" + minTempFormat + "°C");
+        myViewHolder.humidity.setText("Humidity:                     " + data.get(position).getTemperature().getHumidity() + "%");
+        myViewHolder.pressure.setText("Pressure:                     " + data.get(position).getTemperature().getPressure() + "hPa");
+        myViewHolder.wind.setText("Wind:                            " + data.get(position).getWind().getSpeed() + "mps");
+        myViewHolder.sunrise.setText("Sunrise:                       " + sunriseDate + " AM");
+        myViewHolder.sunset.setText("Sunset:                        " + sunsetDate + " PM");
+        myViewHolder.updated.setText("Last Updated:             " + updateDate + " PM");
+        myViewHolder.description.setText("Condition:                    " + data.get(position).getCurrentCondition().getCondition() + "(" +
+                data.get(position).getCurrentCondition().getDescription() + ")");
 
         if(position > previousPosition){ // We are scrolling DOWN
 
@@ -106,13 +94,6 @@ public class MyCustomAdapter extends RecyclerView.Adapter<MyCustomAdapter.MyView
 
         final int currentPosition = position;
         final Weather infoData = data.get(position);
-
-        myViewHolder.iconView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
 
         myViewHolder.iconView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -132,7 +113,7 @@ public class MyCustomAdapter extends RecyclerView.Adapter<MyCustomAdapter.MyView
     }
 
     private void loadImageFromUrl(String imageUrl, ImageView iconView){
-        Picasso.with(context).load(imageUrl).placeholder(R.drawable.climate)
+        Picasso.with(context).load(imageUrl)
                 .error(R.drawable.climate)
                 .into(iconView, new com.squareup.picasso.Callback() {
                     @Override
@@ -156,6 +137,7 @@ public class MyCustomAdapter extends RecyclerView.Adapter<MyCustomAdapter.MyView
 
         TextView cityName;
         TextView temp;
+        TextView minMaxTemp;
         ImageView iconView;
         TextView description;
         TextView humidity;
@@ -170,6 +152,7 @@ public class MyCustomAdapter extends RecyclerView.Adapter<MyCustomAdapter.MyView
 
             cityName = (TextView) itemView.findViewById(R.id.cityText);
             temp = (TextView) itemView.findViewById(R.id.tempText);
+            minMaxTemp = (TextView) itemView.findViewById(R.id.minMaxtempText);
             iconView = (ImageView) itemView.findViewById(R.id.thumbnailIcon);
             description = (TextView) itemView.findViewById(R.id.cloudText);
             humidity = (TextView) itemView.findViewById(R.id.humidText);
@@ -183,15 +166,8 @@ public class MyCustomAdapter extends RecyclerView.Adapter<MyCustomAdapter.MyView
     }
 
     private void removeItem(Weather infoData) {
-
         int currPosition = data.indexOf(infoData);
         data.remove(currPosition);
         notifyItemRemoved(currPosition);
-    }
-
-    private void addItem(int position, Weather infoData) {
-
-        data.add(position, infoData);
-        notifyItemInserted(position);
     }
 }

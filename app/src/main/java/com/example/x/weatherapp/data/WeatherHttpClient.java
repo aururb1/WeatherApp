@@ -1,4 +1,4 @@
-package data;
+package com.example.x.weatherapp.data;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import Util.Utils;
+import com.example.x.weatherapp.Util.Utils;
 
 /**
  * Created by X on 2017-06-14.
